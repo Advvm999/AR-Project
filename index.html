@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Nefertiti AR Mural</title>
+
+<!-- A-Frame -->
+<script defer src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+<!-- MindAR -->
+<script defer src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Start Screen */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#progress-container {
+  width: 280px;
+  height: 8px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #f5c76a;
+  transition: width 0.4s ease;
+}
+
+#start-btn {
+  margin-top: 30px;
+  padding: 12px 40px;
+  font-size: 18px;
+  border-radius: 40px;
+  border: none;
+  background: #f5c76a;
+  color: #000;
+  cursor: pointer;
+  display: none;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= START SCREEN ================= -->
+<div id="loading-screen">
+  <h2>JIDARIYA AR EXPERIENCE</h2>
+  <p id="loading-text">جاري تحميل التجربة...</p>
+
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <button id="start-btn">ابدأ التجربة</button>
+</div>
+
+<!-- ================= AR SCENE ================= -->
+<a-scene
+  embedded
+  style="display:none"
+  vr-mode-ui="enabled:false"
+  device-orientation-permission-ui="enabled:false"
+  mindar-image="imageTargetSrc: ./targets.mind;"
+  renderer="colorManagement:true; physicallyCorrectLights:true">
+
+  <!-- Assets -->
+  <a-assets id="assets" timeout="90000">
+    <a-asset-item id="model" src="./model.glb"></a-asset-item>
+    <audio id="audio" src="./audio.mp3" preload="auto"></audio>
+  </a-assets>
+
+  <a-camera look-controls="enabled:false"></a-camera>
+
+  <!-- ===== NEFERTITI ENTITY ===== -->
+  <a-entity id="nfrt-entity" mindar-image-target="targetIndex: 0">
+
+    <!-- 3D Model -->
+    <a-gltf-model
+      id="nfrt-model"
+      src="#model"
+      position="0 -0.1 0.3"
+      scale="2.5 2.5 2.5"
+
+      animation__breath="
+        property: scale;
+        dir: alternate;
+        dur: 2800;
+        loop: true;
+        to: 2.6 2.6 2.6;
+        easing: easeInOutSine"
+
+      animation__head="
+        property: rotation;
+        dir: alternate;
+        dur: 4200;
+        loop: true;
+        to: 0 2.5 0;
+        easing: easeInOutSine">
+    </a-gltf-model>
+
+    <!-- Sound -->
+    <a-sound
+      id="voice"
+      src="#audio"
+      volume="5"
+      positional="false">
+    </a-sound>
+
+    <!-- Golden Aura Light -->
+    <a-light
+      type="point"
+      color="#f5c76a"
+      position="0 1 0.8"
+      intensity="2">
+      <a-animation
+        attribute="intensity"
+        from="1.5"
+        to="3"
+        dur="2000"
+        direction="alternate"
+        repeat="indefinite">
+      </a-animation>
+    </a-light>
+
+    <!-- Energy Ring -->
+    <a-ring
+      color="#f5c76a"
+      radius-inner="0.7"
+      radius-outer="0.75"
+      rotation="-90 0 0"
+      opacity="0.6">
+      <a-animation
+        attribute="rotation"
+        to="-90 360 0"
+        dur="7000"
+        easing="linear"
+        repeat="indefinite">
+      </a-animation>
+    </a-ring>
+
+  </a-entity>
+</a-scene>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+const assets = document.getElementById("assets");
+const progressBar = document.getElementById("progress-bar");
+const startBtn = document.getElementById("start-btn");
+const loadingText = document.getElementById("loading-text");
+const scene = document.querySelector("a-scene");
+
+let loaded = 0;
+const total = assets.children.length;
+
+assets.addEventListener("loaded", () => {
+  progressBar.style.width = "100%";
+  loadingText.innerText = "التجربة جاهزة";
+  startBtn.style.display = "block";
+});
+
+assets.addEventListener("progress", () => {
+  loaded++;
+  const percent = Math.min((loaded / total) * 100, 90);
+  progressBar.style.width = percent + "%";
+});
+
+startBtn.addEventListener("click", () => {
+  document.getElementById("loading-screen").style.display = "none";
+  scene.style.display = "block";
+});
+
+/* Sound Control */
+const target = document.getElementById("nfrt-entity");
+const sound = document.getElementById("voice");
+const model = document.getElementById("nfrt-model");
+
+let hasPlayed = false;
+
+target.addEventListener("targetFound", () => {
+  if (!hasPlayed) {
+    setTimeout(() => {
+      sound.components.sound.playSound();
+      hasPlayed = true;
+
+      model.setAttribute("animation__talk", {
+        property: "scale",
+        dir: "alternate",
+        dur: 600,
+        loop: true,
+        to: "2.62 2.62 2.62",
+        easing: "easeInOutSine"
+      });
+    }, 1000);
+  }
+});
+
+target.addEventListener("targetLost", () => {
+  sound.components.sound.stopSound();
+  model.removeAttribute("animation__talk");
+});
+</script>
+
+</body>
+</html>

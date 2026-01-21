@@ -1,224 +1,163 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Interactive Nefertiti AR Mural</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Nefertiti AR Mural</title>
 
-<!-- A-Frame -->
-<script defer src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
 
-<!-- MindAR -->
-<script defer src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-
-<style>
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-}
-
-/* Start Screen */
-#loading-screen {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#progress-container {
-  width: 280px;
-  height: 8px;
-  background: rgba(255,255,255,0.25);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 20px;
-}
-
-#progress-bar {
-  height: 100%;
-  width: 0%;
-  background: #f5c76a;
-  transition: width 0.4s ease;
-}
-
-#start-btn {
-  margin-top: 30px;
-  padding: 12px 40px;
-  font-size: 18px;
-  border-radius: 40px;
-  border: none;
-  background: #f5c76a;
-  color: #000;
-  cursor: pointer;
-  display: none;
-}
-</style>
+  <style>
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; }
+    
+    /* Start Screen Styling */
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #fff;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center;
+      z-index: 9999;
+    }
+    #progress-container {
+      width: 280px; height: 8px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 10px; overflow: hidden; margin-top: 20px;
+    }
+    #progress-bar {
+      height: 100%; width: 0%;
+      background: #f5c76a; transition: width 0.4s ease;
+    }
+    #start-btn {
+      margin-top: 30px; padding: 12px 40px;
+      font-size: 18px; border-radius: 40px; border: none;
+      background: #f5c76a; color: #000;
+      cursor: pointer; display: none; fontWeight: bold;
+    }
+    #start-btn:active { transform: scale(0.98); }
+  </style>
 </head>
 
 <body>
 
-<!-- ================= START SCREEN ================= -->
-<div id="loading-screen">
-  <h2>JIDARIYA AR EXPERIENCE</h2>
-  <p id="loading-text">جاري تحميل التجربة...</p>
-
-  <div id="progress-container">
-    <div id="progress-bar"></div>
+  <div id="loading-screen">
+    <h2>JIDARIYA AR EXPERIENCE</h2>
+    <p id="loading-text">جاري تحميل التجربة...</p>
+    <div id="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+    <button id="start-btn">ابدأ التجربة</button>
   </div>
 
-  <button id="start-btn">ابدأ التجربة</button>
-</div>
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false"
+    mindar-image="imageTargetSrc: ./targets.mind; uiLoading: no; uiScanning: no;"
+    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;">
 
-<!-- ================= AR SCENE ================= -->
-<a-scene
-  embedded
-  style="display:none"
-  vr-mode-ui="enabled:false"
-  device-orientation-permission-ui="enabled:false"
-  mindar-image="imageTargetSrc: ./targets.mind;"
-  renderer="colorManagement:true; physicallyCorrectLights:true">
+    <a-assets id="assets" timeout="90000">
+      <a-asset-item id="model" src="./model.glb"></a-asset-item>
+      <audio id="audio" src="./audio.mp3" preload="auto"></audio>
+    </a-assets>
 
-  <!-- Assets -->
-  <a-assets id="assets" timeout="90000">
-    <a-asset-item id="model" src="./model.glb"></a-asset-item>
-    <audio id="audio" src="./audio.mp3" preload="auto"></audio>
-  </a-assets>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-  <a-camera look-controls="enabled:false"></a-camera>
+    <a-entity id="nfrt-entity" mindar-image-target="targetIndex: 0">
 
-  <!-- ===== NEFERTITI ENTITY ===== -->
-  <a-entity id="nfrt-entity" mindar-image-target="targetIndex: 0">
+      <a-gltf-model
+        id="nfrt-model"
+        src="#model"
+        position="0 -0.1 0.1"
+        scale="2.5 2.5 2.5"
+        animation="property: position; dir: alternate; dur: 4000; loop: true; to: 0 -0.05 0.1; easing: easeInOutSine">
+      </a-gltf-model>
 
-    <!-- 3D Model -->
-    <a-gltf-model
-      id="nfrt-model"
-      src="#model"
-      position="0 -0.1 0.3"
-      scale="2.5 2.5 2.5"
+      <a-sound id="voice" src="#audio" poolSize="1"></a-sound>
 
-      animation__breath="
-        property: scale;
-        dir: alternate;
-        dur: 2800;
-        loop: true;
-        to: 2.6 2.6 2.6;
-        easing: easeInOutSine"
+      <a-light
+        type="point"
+        color="#f5c76a"
+        position="0 1 0.8"
+        intensity="2"
+        animation="property: intensity; from: 1.5; to: 3; dur: 2000; dir: alternate; loop: true">
+      </a-light>
 
-      animation__head="
-        property: rotation;
-        dir: alternate;
-        dur: 4200;
-        loop: true;
-        to: 0 2.5 0;
-        easing: easeInOutSine">
-    </a-gltf-model>
+      <a-ring
+        color="#f5c76a"
+        radius-inner="0.7"
+        radius-outer="0.75"
+        rotation="-90 0 0"
+        opacity="0.6"
+        animation="property: rotation; to: -90 360 0; dur: 10000; easing: linear; loop: true">
+      </a-ring>
 
-    <!-- Sound -->
-    <a-sound
-      id="voice"
-      src="#audio"
-      volume="5"
-      positional="false">
-    </a-sound>
+    </a-entity>
+  </a-scene>
 
-    <!-- Golden Aura Light -->
-    <a-light
-      type="point"
-      color="#f5c76a"
-      position="0 1 0.8"
-      intensity="2">
-      <a-animation
-        attribute="intensity"
-        from="1.5"
-        to="3"
-        dur="2000"
-        direction="alternate"
-        repeat="indefinite">
-      </a-animation>
-    </a-light>
+  <script>
+    const assets = document.querySelector("a-assets");
+    const progressBar = document.getElementById("progress-bar");
+    const startBtn = document.getElementById("start-btn");
+    const loadingText = document.getElementById("loading-text");
+    const loadingScreen = document.getElementById("loading-screen");
+    
+    // محاكاة شريط التحميل لأن a-assets لا يعطي progress دقيق دائماً
+    let loadPercent = 0;
+    const interval = setInterval(() => {
+        if(loadPercent < 90) {
+            loadPercent += Math.random() * 10;
+            progressBar.style.width = loadPercent + "%";
+        }
+    }, 500);
 
-    <!-- Energy Ring -->
-    <a-ring
-      color="#f5c76a"
-      radius-inner="0.7"
-      radius-outer="0.75"
-      rotation="-90 0 0"
-      opacity="0.6">
-      <a-animation
-        attribute="rotation"
-        to="-90 360 0"
-        dur="7000"
-        easing="linear"
-        repeat="indefinite">
-      </a-animation>
-    </a-ring>
+    assets.addEventListener("loaded", () => {
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      loadingText.innerText = "التجربة جاهزة";
+      startBtn.style.display = "block";
+    });
 
-  </a-entity>
-</a-scene>
+    startBtn.addEventListener("click", () => {
+      loadingScreen.style.display = "none";
+    });
 
-<!-- ================= SCRIPT ================= -->
-<script>
-const assets = document.getElementById("assets");
-const progressBar = document.getElementById("progress-bar");
-const startBtn = document.getElementById("start-btn");
-const loadingText = document.getElementById("loading-text");
-const scene = document.querySelector("a-scene");
+    /* Sound & Animation Control Logic */
+    const target = document.getElementById("nfrt-entity");
+    const sound = document.getElementById("voice");
+    const model = document.getElementById("nfrt-model");
 
-let loaded = 0;
-const total = assets.children.length;
-
-assets.addEventListener("loaded", () => {
-  progressBar.style.width = "100%";
-  loadingText.innerText = "التجربة جاهزة";
-  startBtn.style.display = "block";
-});
-
-assets.addEventListener("progress", () => {
-  loaded++;
-  const percent = Math.min((loaded / total) * 100, 90);
-  progressBar.style.width = percent + "%";
-});
-
-startBtn.addEventListener("click", () => {
-  document.getElementById("loading-screen").style.display = "none";
-  scene.style.display = "block";
-});
-
-/* Sound Control */
-const target = document.getElementById("nfrt-entity");
-const sound = document.getElementById("voice");
-const model = document.getElementById("nfrt-model");
-
-let hasPlayed = false;
-
-target.addEventListener("targetFound", () => {
-  if (!hasPlayed) {
-    setTimeout(() => {
+    // عند اكتشاف الصورة
+    target.addEventListener("targetFound", () => {
+      console.log("Target Found");
+      
+      // تشغيل الصوت
       sound.components.sound.playSound();
-      hasPlayed = true;
 
+      // إضافة أنيميشن "الكلام" (تكبير وتصغير بسيط)
       model.setAttribute("animation__talk", {
         property: "scale",
         dir: "alternate",
-        dur: 600,
+        dur: 300,
         loop: true,
-        to: "2.62 2.62 2.62",
+        to: "2.55 2.55 2.55", // تغيير طفيف لمحاكاة الاهتزاز
         easing: "easeInOutSine"
       });
-    }, 1000);
-  }
-});
+    });
 
-target.addEventListener("targetLost", () => {
-  sound.components.sound.stopSound();
-  model.removeAttribute("animation__talk");
-});
-</script>
+    // عند فقدان الصورة
+    target.addEventListener("targetLost", () => {
+      console.log("Target Lost");
+      
+      // إيقاف الصوت
+      sound.components.sound.stopSound();
+      
+      // إزالة أنيميشن الكلام ليعود المجسم طبيعياً
+      model.removeAttribute("animation__talk");
+      model.setAttribute("scale", "2.5 2.5 2.5"); // إعادة تعيين الحجم الأصلي
+    });
+  </script>
 
 </body>
 </html>
